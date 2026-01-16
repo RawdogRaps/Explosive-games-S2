@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Level 1 - 2001</title>
+    <style>
+        body { text-align: center; font-family: 'Comic Sans MS', sans-serif; background: #f0f0f0; }
+        #game-container {
+            position: relative; width: 600px; height: 400px;
+            margin: 20px auto; border: 4px solid #333; background: #7cfc00;
+            border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .hammer {
+    width: 80px;
+    cursor: grab;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100; /* Ensure this is the highest number */
+    pointer-events: auto !important; /* Forces the browser to allow clicks */
+    -webkit-user-drag: element; /* Specific for Chrome/Safari */
+}
+        .mole { width: 120px; position: absolute; }
+        .mole { width: 120px; position: absolute; }
+        .crying-mole {
+    width: 180px !important; /* This makes it significantly larger */
+    z-index: 5;
+}
+
+        /* Positions */
+        #mole1 { bottom: 50px; left: 100px; }
+        #mole2 { bottom: 50px; right: 100px; display: none; }
+
+        #interstitial {
+            display: none;
+            position: absolute; /* Makes it stay in place over the whole screen */
+            top: 0;
+            left: 0;
+            width: 100vw;    /* 100% of Viewport Width */
+            min-height: 100vh;   /* 100% of Viewport Height */
+            background: rgba(0, 0, 0, 0.9); /* Dark background to focus on the GIF */
+            z-index: 999;    /* Ensures it stays on top of the game */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+        /* This makes the GIF fill the screen without stretching weirdly */
+        #popup-gif {
+            width: 900px;
+            height: 500px;
+            object-fit: cover
+            display: block;
+
+}
+
+        #status-msg {
+            color: white;
+            font-size: 2rem;
+            margin: 5px 0;
+
+}
+        body {
+    /* Change this or remove it */
+    overflow: auto;
+}
+        #game-container {
+    /* If this is here, the box won't grow */
+    height: 400px;
+    overflow: visible; /* Ensure this isn't set to 'hidden' */
+}
+        html, body {
+    height: auto !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch;
+}
+        .next-btn { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; background: #2196F3; color: white; border: none; border-radius: 5px; }
+        .final-btn { padding: 15px 30px; font-size: 1.3rem; cursor: pointer; background: #f44336; color: white; border: none; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1 id="header-text">✈️ Flight 11: The First Tower</h1>
+
+    <div id="game-container" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <img id="hammer"
+     class="hammer"
+     src="{{ url_for('static', filename='plane.png') }}"
+     draggable="true"
+     oncontextmenu="return false;"
+     ondragstart="drag(event)">
+
+        <img id="mole1" class="mole" src="{{ url_for('static', filename='tower1.jpg') }}">
+        <img id="mole2" class="mole" src="{{ url_for('static', filename='tower2.jpg') }}">
+    </div>
+
+    <div id="interstitial">
+        <img id="popup-gif" src="https://i.makeagif.com/media/9-11-2015/5FFv2W.gif" width="200">
+        <p id="status-msg"></p>
+
+       <button id="next-mole-btn" class="next-btn" onclick="startSecondRound()">17 Minutes Later</button>
+
+    <form id="final-form" method="post" style="display: none;">
+    <div id="prize-container" style="display: none; margin-bottom: 20px;">
+        <img id="prize-image" src="{{ url_for('static', filename='congrats.png') }}" style="width: 300px; border: 3px solid gold;">
+        <p style="color: white; font-size: 1.5rem;">Message from Boss</p>
+    </div>
+
+    <button type="button" id="stage-2-btn" class="final-btn" onclick="handleFinalClick()">
+        Next Mission
+    </button>
+</form>
+</div>
+
+
+    <script>
+        const gifLink1 = "https://i.makeagif.com/media/9-11-2015/5FFv2W.gif";
+        const gifLink2 = "https://theness.com/neurologicablog/wp-content/uploads/2014/06/911roll.gif";
+        let stage = 1;
+        // The "crying" version of the mole icon (using a sad face emoji/icon as a placeholder)
+        const cryingMoleImg = "/static/burn1.gif";
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(event) { ev.dataTransfer.setData("text", ev.target.id); }
+
+        function drop(ev) {
+            ev.preventDefault();
+
+            // THE FIX: Define targetId by looking at the element under the drop
+            const target = ev.target;
+            const targetId = target.id;
+
+            console.log("Dropped on:", targetId);
+
+            // Using .includes or checking the target directly is safer
+            if (stage === 1 && targetId === "mole1") {
+                const m1 = document.getElementById("mole1");
+                m1.src = cryingMoleImg;
+                m1.classList.add("crying-mole");
+                showUI("Here comes the Airplane", false);
+            }
+            else if (stage === 2 && targetId === "mole2") {
+                const m2 = document.getElementById("mole2");
+                m2.src = cryingMoleImg;
+                m2.classList.add("crying-mole");
+                showUI("It was an inside job.", true);
+            }
+        }
+
+        let finalClickCount = 0;
+
+function handleFinalClick() {
+    const prizeDiv = document.getElementById("prize-container");
+    const btn = document.getElementById("stage-2-btn");
+    const form = document.getElementById("final-form");
+
+    if (finalClickCount === 0) {
+        // FIRST CLICK: Show the image and change button text
+        prizeDiv.style.display = "block";
+        btn.innerText = "OK, NOW GO TO LEVEL 2";
+        btn.style.background = "gold";
+        btn.style.color = "black";
+
+        finalClickCount = 1;
+    } else {
+        // SECOND CLICK: Actually submit the form to Flask
+        form.submit();
+    }
+}
+
+        function showUI(msg, isFinal) {
+    // Hide the game container so it doesn't peek through
+    document.getElementById("game-container").style.visibility = "hidden";
+
+    // Show the fullscreen overlay
+    const overlay = document.getElementById("interstitial");
+    overlay.style.display = "flex"; // Changed from 'block' to 'flex' for centering
+
+    document.getElementById("status-msg").innerText = msg;
+
+    if (isFinal) {
+        document.getElementById("popup-gif").src = gifLink2;
+        document.getElementById("next-mole-btn").style.display = "none";
+        document.getElementById("final-form").style.display = "block";
+    } else {
+        document.getElementById("popup-gif").src = gifLink1;
+    }
+}
+
+        function startSecondRound() {
+            stage = 2;
+            document.getElementById("interstitial").style.display = "none";
+            document.getElementById("header-text").innerText = "✈️ Flight 175: The Second Tower";
+
+            // Show the board again
+            document.getElementById("game-container").style.visibility = "visible";
+
+            // Show Mole 2, while Mole 1 stays there crying
+            document.getElementById("mole2").style.display = "block";
+
+            // Reset hammer position
+            const hammer = document.getElementById("hammer");
+            hammer.style.top = "10px";
+            hammer.style.left = "10px";
+        }
+    </script>
+</body>
+</html>

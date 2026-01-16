@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRIZE PRIZE PRIZE</title>
+    <style>
+        /* General Page Styling */
+        body {
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #111;
+            color: white;
+            margin: 0;
+            overflow: hidden; /* Prevents scrolling while in the game */
+        }
+
+        h1 { margin-top: 50px; color: #5d4037; text-shadow: 2px 2px #000; }
+
+        /* The Door Grid Layout */
+        .door-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            padding-top: 50px;
+        }
+
+        .door {
+            width: 130px;
+            height: 200px;
+            background: #5d4037;
+            border: 5px solid #3e2723;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .door:hover {
+            transform: scale(1.1);
+            background: #795548;
+        }
+
+        /* Hides the door once clicked */
+        .door.opened {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* Fullscreen Overlay Styles */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #content-img {
+            max-width: 90vw;
+            max-height: 75vh;
+            object-fit: contain;
+            border: 4px solid #ff4444;
+            display: none;
+        }
+
+        #content-video {
+            max-width: 95vw;
+            max-height: 80vh;
+            display: none;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        #overlay-text {
+            margin: 20px 0;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        .close-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background: #eee;
+            color: #111;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        #next-level-btn {
+            display: none;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            background: #00ff00;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px #00ff00; }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-screen">
+        <h1>🚪 LEVEL 3: THE FIVE DOORS</h1>
+        <p>Behind one lies the Final Prize. Choose Wisely, as for every wrong choice you get punished</p>
+
+        <div class="door-container">
+            <div class="door" onclick="openDoor(this)">1</div>
+            <div class="door" onclick="openDoor(this)">2</div>
+            <div class="door" onclick="openDoor(this)">3</div>
+            <div class="door" onclick="openDoor(this)">4</div>
+            <div class="door" onclick="openDoor(this)">5</div>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <img id="content-img" src="">
+
+        <video id="content-video">
+            <source id="video-source" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <p id="overlay-text"></p>
+
+        <button id="close-overlay" class="close-btn" onclick="closeOverlay()">Close</button>
+
+        <form method="post" action="/level3">
+            <button type="submit" id="next-level-btn">THE END</button>
+        </form>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        const totalDoors = 5;
+
+        // Path settings - Ensure these match your filenames in /static/
+        const wrongImages = [
+            "/static/wrong1.jpg",
+            "/static/wrong2.gif",
+            "/static/wrong3.jpg",
+            "/static/wrong4.gif"
+        ];
+        const winnerVideoPath = "/static/bigprizeseason2.mp4";
+
+        function openDoor(element) {
+            // Prevent multiple clicks on the same door
+            if (element.classList.contains('opened')) return;
+
+            clickCount++;
+            element.classList.add('opened');
+
+            const overlay = document.getElementById('overlay');
+            const img = document.getElementById('content-img');
+            const video = document.getElementById('content-video');
+            const closeBtn = document.getElementById('close-overlay');
+            const nextBtn = document.getElementById('next-level-btn');
+            const statusText = document.getElementById('overlay-text');
+
+            // Show the overlay
+            overlay.style.display = 'flex';
+
+            if (clickCount <= 4) {
+                // DOORS 1-4: Show "Wrong" Images
+                img.src = wrongImages[clickCount - 1];
+                img.style.display = 'block';
+                video.style.display = 'none';
+                statusText.innerText = "WRONG DOOR. TRY AGAIN.";
+                statusText.style.color = "#ff4444";
+                closeBtn.style.display = 'block';
+            } else {
+                // DOOR 5: The Final Video Reveal
+                img.style.display = 'none';
+                video.style.display = 'block';
+                video.src = winnerVideoPath;
+
+                // Hide close button so they must watch
+                closeBtn.style.display = 'none';
+                statusText.innerText = "Enjoy:)";
+                statusText.style.color = "#ffd700";
+
+                video.load();
+                video.play();
+
+                // Logic for when the video ends
+                video.onended = function() {
+                    statusText.innerText = "ACCESS GRANTED.";
+                    nextBtn.style.display = 'block';
+                };
+            }
+        }
+
+        function closeOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+            // Stop video if it was somehow playing
+            const video = document.getElementById('content-video');
+            video.pause();
+        }
+    </script>
+</body>
+</html>
