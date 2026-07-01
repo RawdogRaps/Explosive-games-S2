@@ -121,18 +121,20 @@
         const cryingMoleImg = "/static/burn1.gif";
 
         function allowDrop(ev) { ev.preventDefault(); }
-        function drag(event) { ev.dataTransfer.setData("text", ev.target.id); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
 
         function drop(ev) {
             ev.preventDefault();
 
-            // THE FIX: Define targetId by looking at the element under the drop
             const target = ev.target;
+            if (!target || !target.id) {
+                console.warn("Drop target has no id, ignoring.");
+                return;
+            }
             const targetId = target.id;
 
             console.log("Dropped on:", targetId);
 
-            // Using .includes or checking the target directly is safer
             if (stage === 1 && targetId === "mole1") {
                 const m1 = document.getElementById("mole1");
                 m1.src = cryingMoleImg;
@@ -169,21 +171,29 @@ function handleFinalClick() {
 }
 
         function showUI(msg, isFinal) {
-    // Hide the game container so it doesn't peek through
-    document.getElementById("game-container").style.visibility = "hidden";
-
-    // Show the fullscreen overlay
+    const container = document.getElementById("game-container");
     const overlay = document.getElementById("interstitial");
-    overlay.style.display = "flex"; // Changed from 'block' to 'flex' for centering
+    const popupGif = document.getElementById("popup-gif");
+    if (!container || !overlay || !popupGif) {
+        console.error("showUI: missing required DOM elements");
+        return;
+    }
 
+    container.style.visibility = "hidden";
+    overlay.style.display = "flex";
     document.getElementById("status-msg").innerText = msg;
 
+    popupGif.onerror = function() {
+        console.error("Failed to load GIF:", this.src);
+        this.alt = "Image failed to load";
+    };
+
     if (isFinal) {
-        document.getElementById("popup-gif").src = gifLink2;
+        popupGif.src = gifLink2;
         document.getElementById("next-mole-btn").style.display = "none";
         document.getElementById("final-form").style.display = "block";
     } else {
-        document.getElementById("popup-gif").src = gifLink1;
+        popupGif.src = gifLink1;
     }
 }
 
