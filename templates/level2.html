@@ -58,14 +58,23 @@
             const userInput = document.getElementById("answer-input").value.toUpperCase().trim();
             const errorMsg = document.getElementById("error-msg");
 
+            if (currentStep < 0 || currentStep >= riddles.length) {
+                console.error("checkAnswer: currentStep out of bounds:", currentStep);
+                return;
+            }
+
             if (userInput === riddles[currentStep].a) {
-                // Correct!
                 errorMsg.style.display = "none";
                 document.getElementById("input-area").style.display = "none";
-                document.getElementById("success-image").src = riddles[currentStep].img;
+
+                const successImg = document.getElementById("success-image");
+                successImg.onerror = function() {
+                    console.error("Failed to load success image:", this.src);
+                    this.alt = "Image failed to load";
+                };
+                successImg.src = riddles[currentStep].img;
                 document.getElementById("image-overlay").style.display = "block";
             } else {
-                // Incorrect
                 errorMsg.style.display = "block";
             }
         }
@@ -74,14 +83,12 @@
             currentStep++;
 
             if (currentStep < riddles.length) {
-                // Show next riddle
-                document.getElementById("riddle-title").innerText = `Riddle ${currentStep + 1} of 10`;
+                document.getElementById("riddle-title").innerText = `Riddle ${currentStep + 1} of ${riddles.length}`;
                 document.getElementById("riddle-text").innerText = riddles[currentStep].q;
                 document.getElementById("answer-input").value = "";
                 document.getElementById("input-area").style.display = "block";
                 document.getElementById("image-overlay").style.display = "none";
             } else {
-                // Game Finished
                 document.getElementById("riddle-title").innerText = "MASHALLAH!";
                 document.getElementById("riddle-text").style.display = "none";
                 document.getElementById("image-overlay").style.display = "none";

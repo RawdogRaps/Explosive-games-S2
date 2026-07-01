@@ -148,7 +148,7 @@
 
         <button id="close-overlay" class="close-btn" onclick="closeOverlay()">Close</button>
 
-        <form method="post" action="/level3">
+        <form method="post" action="{{ url_for('level3') }}">
             <button type="submit" id="next-level-btn">THE END</button>
         </form>
     </div>
@@ -167,7 +167,6 @@
         const winnerVideoPath = "/static/bigprizeseason2.mp4";
 
         function openDoor(element) {
-            // Prevent multiple clicks on the same door
             if (element.classList.contains('opened')) return;
 
             clickCount++;
@@ -180,32 +179,51 @@
             const nextBtn = document.getElementById('next-level-btn');
             const statusText = document.getElementById('overlay-text');
 
-            // Show the overlay
+            if (!overlay || !img || !video || !closeBtn || !nextBtn || !statusText) {
+                console.error("openDoor: missing required DOM elements");
+                return;
+            }
+
             overlay.style.display = 'flex';
 
             if (clickCount <= 4) {
-                // DOORS 1-4: Show "Wrong" Images
-                img.src = wrongImages[clickCount - 1];
+                const imgIndex = clickCount - 1;
+                if (imgIndex < 0 || imgIndex >= wrongImages.length) {
+                    console.error("openDoor: wrong image index out of bounds:", imgIndex);
+                    return;
+                }
+                img.onerror = function() {
+                    console.error("Failed to load wrong-door image:", this.src);
+                    this.alt = "Image failed to load";
+                };
+                img.src = wrongImages[imgIndex];
                 img.style.display = 'block';
                 video.style.display = 'none';
                 statusText.innerText = "WRONG DOOR. TRY AGAIN.";
                 statusText.style.color = "#ff4444";
                 closeBtn.style.display = 'block';
             } else {
-                // DOOR 5: The Final Video Reveal
                 img.style.display = 'none';
                 video.style.display = 'block';
                 video.src = winnerVideoPath;
 
-                // Hide close button so they must watch
                 closeBtn.style.display = 'none';
                 statusText.innerText = "Enjoy:)";
                 statusText.style.color = "#ffd700";
 
-                video.load();
-                video.play();
+                video.onerror = function() {
+                    console.error("Failed to load prize video:", winnerVideoPath);
+                    statusText.innerText = "Video failed to load.";
+                    nextBtn.style.display = 'block';
+                };
 
-                // Logic for when the video ends
+                video.load();
+                video.play().catch(function(err) {
+                    console.error("Video autoplay blocked:", err);
+                    statusText.innerText = "Click anywhere on the video to play.";
+                    video.controls = true;
+                });
+
                 video.onended = function() {
                     statusText.innerText = "ACCESS GRANTED.";
                     nextBtn.style.display = 'block';
@@ -215,9 +233,12 @@
 
         function closeOverlay() {
             document.getElementById('overlay').style.display = 'none';
-            // Stop video if it was somehow playing
             const video = document.getElementById('content-video');
-            video.pause();
+            if (video) {
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+            }
         }
     </script>
 </body>
