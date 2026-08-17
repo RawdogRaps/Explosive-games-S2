@@ -52,42 +52,59 @@
             { q: "What did Jamal say", a: "ALLAHU AKBAR NIGGA", img: "https://i1.sndcdn.com/artworks-000221638816-6evq8k-t500x500.jpg" }
         ];
 
-        let currentStep = 0;
+let currentStep = 0;
+let canClick = true; // Tracks whether clicking is enabled
 
-        function checkAnswer() {
-            const userInput = document.getElementById("answer-input").value.toUpperCase().trim();
-            const errorMsg = document.getElementById("error-msg");
+function checkAnswer() {
+  const userInput = document.getElementById("answer-input").value.toUpperCase().trim();
+  const errorMsg = document.getElementById("error-msg");
+  const overlay = document.getElementById("image-overlay");
+  const promptText = overlay.querySelector("p");
 
-            if (userInput === riddles[currentStep].a) {
-                // Correct!
-                errorMsg.style.display = "none";
-                document.getElementById("input-area").style.display = "none";
-                document.getElementById("success-image").src = riddles[currentStep].img;
-                document.getElementById("image-overlay").style.display = "block";
-            } else {
-                // Incorrect
-                errorMsg.style.display = "block";
-            }
-        }
+  if (userInput === riddles[currentStep].a) {
+    errorMsg.style.display = "none";
+    document.getElementById("input-area").style.display = "none";
+    document.getElementById("success-image").src = riddles[currentStep].img;
+    overlay.style.display = "block";
 
-        function nextRiddle() {
-            currentStep++;
+    // If it's the specific riddle (index 1), lock clicks for 5 seconds
+    if (currentStep === 1) {
+      canClick = false;
+      overlay.style.cursor = "not-allowed";
+      promptText.innerText = "(WAIT 5 SECONDS...)";
 
-            if (currentStep < riddles.length) {
-                // Show next riddle
-                document.getElementById("riddle-title").innerText = `Riddle ${currentStep + 1} of 10`;
-                document.getElementById("riddle-text").innerText = riddles[currentStep].q;
-                document.getElementById("answer-input").value = "";
-                document.getElementById("input-area").style.display = "block";
-                document.getElementById("image-overlay").style.display = "none";
-            } else {
-                // Game Finished
-                document.getElementById("riddle-title").innerText = "MASHALLAH!";
-                document.getElementById("riddle-text").style.display = "none";
-                document.getElementById("image-overlay").style.display = "none";
-                document.getElementById("final-form").classList.remove("hidden");
-            }
-        }
+      setTimeout(() => {
+        canClick = true;
+        overlay.style.cursor = "pointer";
+        promptText.innerText = "(CLICK IMAGE TO CONTINUE)";
+      }, 5000);
+    } else {
+      canClick = true;
+      overlay.style.cursor = "pointer";
+      promptText.innerText = "(CLICK IMAGE TO CONTINUE)";
+    }
+  } else {
+    errorMsg.style.display = "block";
+  }
+}
+
+function nextRiddle() {
+  if (!canClick) return; // Prevent advancing if timer is active
+
+  currentStep++;
+  if (currentStep < riddles.length) {
+    document.getElementById("riddle-title").innerText = `Riddle ${currentStep + 1} of 10`;
+    document.getElementById("riddle-text").innerText = riddles[currentStep].q;
+    document.getElementById("answer-input").value = "";
+    document.getElementById("input-area").style.display = "block";
+    document.getElementById("image-overlay").style.display = "none";
+  } else {
+    document.getElementById("riddle-title").innerText = "MASHALLAH!";
+    document.getElementById("riddle-text").style.display = "none";
+    document.getElementById("image-overlay").style.display = "none";
+    document.getElementById("final-form").classList.remove("hidden");
+  }
+}
     </script>
 </body>
 </html>
