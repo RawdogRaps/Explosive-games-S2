@@ -71,13 +71,13 @@ function checkAnswer() {
     if (currentStep === 1) {
       canClick = false;
       overlay.style.cursor = "not-allowed";
-      promptText.innerText = "(WAIT 5 SECONDS...)";
+      promptText.innerText = "(WAIT 10 SECONDS...)";
 
       setTimeout(() => {
         canClick = true;
         overlay.style.cursor = "pointer";
         promptText.innerText = "(CLICK IMAGE TO CONTINUE)";
-      }, 5000);
+      }, 10000);
     } else {
       canClick = true;
       overlay.style.cursor = "pointer";
